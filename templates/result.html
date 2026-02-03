@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Result - Box Office Revenue Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+    <style>
+        .success-animation {
+            animation: scaleIn 0.5s ease-out;
+        }
+        
+        @keyframes scaleIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #667eea;
+            position: absolute;
+            animation: confetti-fall 3s linear forwards;
+        }
+        
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .revenue-comparison {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .comparison-bar {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        
+        .bar-label {
+            min-width: 120px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .bar-track {
+            flex: 1;
+            height: 25px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            transition: width 1.5s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 Box Office Revenue Predictor</h1>
+            <p>✨ Prediction Complete</p>
+        </header>
+
+        {% if error %}
+        <div class="result-container error">
+            <h2>❌ Error Occurred</h2>
+            <p style="margin: 20px 0; font-size: 1.1em;">{{ error }}</p>
+            <div class="action-buttons">
+                <a href="/" class="back-btn">← Try Again</a>
+            </div>
+        </div>
+        {% else %}
+        <div class="result-container success-animation">
+            <div style="text-align: center; margin-bottom: 15px;">
+                <div style="font-size: 3em;">🎉</div>
+                <h3 style="color: #667eea; margin: 10px 0;">Prediction Generated Successfully!</h3>
+            </div>
+
+            <div class="movie-title">
+                <h2 style="color: #333; font-size: 2.2em; margin-bottom: 5px;">{{ title }}</h2>
+                <p style="color: #666; font-size: 0.95em;">AI-Powered Revenue Forecast</p>
+            </div>
+
+            <div class="prediction-box">
+                <h3 style="font-size: 1.1em; margin-bottom: 15px; opacity: 0.95;">💰 Predicted Domestic Revenue</h3>
+                <div class="prediction-value" style="font-size: 3.5em; font-weight: 800; text-shadow: 2px 2px 8px rgba(0,0,0,0.2);">
+                    {{ prediction_millions }}
+                </div>
+                <div class="prediction-detail" style="font-size: 1.2em; margin-top: 10px;">
+                    {{ prediction }}
+                </div>
+                <div class="revenue-bar" style="margin-top: 20px;">
+                    <div class="revenue-bar-fill" style="width: 85%;"></div>
+                </div>
+                <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.9;">
+                    📊 Based on XGBoost ML Analysis
+                </p>
+            </div>
+
+            <div style="text-align: center; margin: 25px 0;">
+                <h3 style="color: #667eea; margin-bottom: 15px;">📋 Movie Details</h3>
+            </div>
+
+            <div class="details-grid">
+                <div class="detail-card">
+                    <div style="font-size: 2em; margin-bottom: 10px;">🎭</div>
+                    <h4 style="color: #667eea; margin-bottom: 10px; font-size: 0.9em;">MPAA Rating</h4>
+                    <p style="color: #333; font-weight: 700; font-size: 1.2em;">{{ mpaa }}</p>
+                </div>
+                <div class="detail-card">
+                    <div style="font-size: 2em; margin-bottom: 10px;">🏢</div>
+                    <h4 style="color: #667eea; margin-bottom: 10px; font-size: 0.9em;">Distributor</h4>
+                    <p style="color: #333; font-weight: 700; font-size: 1.1em;">{{ distributor }}</p>
+                </div>
+                <div class="detail-card">
+                    <div style="font-size: 2em; margin-bottom: 10px;">🎪</div>
+                    <h4 style="color: #667eea; margin-bottom: 10px; font-size: 0.9em;">Opening Theaters</h4>
+                    <p style="color: #333; font-weight: 700; font-size: 1.3em;">{{ "{:,}".format(opening_theaters) }}</p>
+                </div>
+                <div class="detail-card">
+                    <div style="font-size: 2em; margin-bottom: 10px;">📅</div>
+                    <h4 style="color: #667eea; margin-bottom: 10px; font-size: 0.9em;">Release Days</h4>
+                    <p style="color: #333; font-weight: 700; font-size: 1.3em;">{{ release_days }}</p>
+                </div>
+            </div>
+
+            <div class="genres-display" style="text-align: center;">
+                <h4 style="color: #667eea; margin-bottom: 15px; font-size: 1.1em;">🎬 Movie Genres</h4>
+                <div>
+                    {% if genres and genres != 'None' %}
+                        {% for genre in genres.split(', ') %}
+                            <span class="genre-badge">{{ genre }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color: #999;">No genres selected</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="revenue-comparison">
+                <h4 style="color: #333; margin-bottom: 15px; text-align: center;">📊 Revenue Benchmarks</h4>
+                <div class="comparison-bar">
+                    <span class="bar-label">Low Budget</span>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: 25%;">$10M</div>
+                    </div>
+                </div>
+                <div class="comparison-bar">
+                    <span class="bar-label">Medium Budget</span>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: 50%;">$50M</div>
+                    </div>
+                </div>
+                <div class="comparison-bar">
+                    <span class="bar-label">Blockbuster</span>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: 75%;">$200M</div>
+                    </div>
+                </div>
+                <div class="comparison-bar">
+                    <span class="bar-label">Your Movie</span>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: 60%; background: linear-gradient(90deg, #4caf50 0%, #8bc34a 100%);">
+                            {{ prediction_millions }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <h4 style="color: #856404; margin-bottom: 8px;">⚠️ Important Note</h4>
+                <p style="color: #856404; font-size: 0.9em; line-height: 1.5;">
+                    This prediction is based on machine learning analysis and should be used as an estimate. 
+                    Actual box office performance depends on many factors including marketing, reviews, competition, and market conditions.
+                </p>
+            </div>
+
+            <div class="action-buttons" style="margin-top: 30px;">
+                <a href="/" class="back-btn" style="font-size: 1.1em; padding: 15px 35px;">
+                    ← Make Another Prediction
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <footer>
+            <p>🤖 Powered by XGBoost Machine Learning Model</p>
+            <p style="font-size: 0.85em; margin-top: 5px; opacity: 0.8;">
+                Advanced AI predictions for box office revenue
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Add entrance animation
+        window.addEventListener('load', function() {
+            // Scroll to top
+            window.scrollTo(0, 0);
+            
+            // Trigger bar animations
+            setTimeout(() => {
+                document.querySelectorAll('.bar-fill').forEach((bar, index) => {
+                    bar.style.width = '0%';
+                    setTimeout(() => {
+                        bar.style.width = bar.getAttribute('style').match(/width:\s*(\d+)%/)[1] + '%';
+                    }, 100 + (index * 150));
+                });
+            }, 500);
+        });
+    </script>
+</body>
+</html>

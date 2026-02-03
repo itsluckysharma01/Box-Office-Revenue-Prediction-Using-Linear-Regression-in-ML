@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Box Office Revenue Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 Box Office Revenue Predictor</h1>
+            <p>Predict movie revenue using Advanced Machine Learning</p>
+            <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.85;">
+                ⚡ Powered by XGBoost AI Model
+            </div>
+        </header>
+
+        <div class="form-container">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <h3 style="color: #667eea; margin-bottom: 10px;">📊 Enter Movie Details</h3>
+                <p style="color: #666; font-size: 0.9em;">Fill in the information below to predict box office revenue</p>
+            </div>
+
+            <form action="/predict" method="POST" id="predictionForm">
+                <div class="form-group">
+                    <label for="title">🎥 Movie Title</label>
+                    <input type="text" id="title" name="title" placeholder="e.g., The Amazing Adventure" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="distributor">🏢 Distributor 
+                            <span class="tooltip">ℹ️
+                                <span class="tooltiptext">Choose the studio distributing the film</span>
+                            </span>
+                        </label>
+                        <select id="distributor" name="distributor" required>
+                            <option value="">Select Distributor</option>
+                            {% for dist in distributor_options %}
+                            <option value="{{ dist }}">{{ dist }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mpaa">📋 MPAA Rating
+                            <span class="tooltip">ℹ️
+                                <span class="tooltiptext">Movie content rating (G, PG, PG-13, R, etc.)</span>
+                            </span>
+                        </label>
+                        <select id="mpaa" name="mpaa" required>
+                            <option value="">Select Rating</option>
+                            {% for rating in mpaa_options %}
+                            <option value="{{ rating }}">{{ rating }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="opening_theaters">🎪 Opening Theaters
+                            <span class="tooltip">ℹ️
+                                <span class="tooltiptext">Number of theaters for opening weekend</span>
+                            </span>
+                        </label>
+                        <input type="number" id="opening_theaters" name="opening_theaters" 
+                               placeholder="e.g., 3000" min="1" step="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="release_days">📅 Release Days
+                            <span class="tooltip">ℹ️
+                                <span class="tooltiptext">Expected theatrical run duration</span>
+                            </span>
+                        </label>
+                        <input type="number" id="release_days" name="release_days" 
+                               placeholder="e.g., 120" min="1" step="1" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>🎭 Genres (Select all that apply)</label>
+                    <div class="genre-grid">
+                        {% for genre in genre_options %}
+                        <label class="genre-checkbox">
+                            <input type="checkbox" name="genres" value="{{ genre }}">
+                            <span>{{ genre.title() }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <button type="submit" class="predict-btn">
+                    <span>🎯 Predict Revenue</span>
+                </button>
+            </form>
+        </div>
+
+        <footer>
+            <p>🤖 Powered by XGBoost Machine Learning Model</p>
+            <p style="font-size: 0.85em; margin-top: 5px; opacity: 0.8;">
+                Trained on thousands of movie data points
+            </p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
