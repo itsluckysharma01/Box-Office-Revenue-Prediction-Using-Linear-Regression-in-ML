@@ -28,6 +28,38 @@ DISTRIBUTOR_OPTIONS = [
 # Genre options - Only the genres that were actually used in training
 GENRE_OPTIONS = ['action', 'animation', 'comedy', 'drama', 'horror', 'thriller']
 
+# Sample movie titles for autocomplete suggestions
+POPULAR_MOVIES = [
+    'Avatar', 'Avengers: Endgame', 'Titanic', 'Star Wars: The Force Awakens',
+    'Avengers: Infinity War', 'Spider-Man: No Way Home', 'Jurassic World',
+    'The Lion King', 'The Avengers', 'Furious 7', 'Frozen II', 'Frozen',
+    'Black Panther', 'Harry Potter and the Deathly Hallows Part 2',
+    'Star Wars: The Last Jedi', 'Jurassic World: Fallen Kingdom',
+    'Beauty and the Beast', 'Incredibles 2', 'The Fate of the Furious',
+    'Iron Man 3', 'Minions', 'Captain America: Civil War', 'Aquaman',
+    'The Dark Knight', 'Toy Story 4', 'Toy Story 3', 'Wonder Woman',
+    'Iron Man', 'Captain Marvel', 'Transformers: Dark of the Moon',
+    'Skyfall', 'Transformers: Age of Extinction', 'The Dark Knight Rises',
+    'Joker', 'Star Wars: The Rise of Skywalker', 'Finding Dory',
+    'Star Wars: Episode I', 'Alice in Wonderland', 'Zootopia',
+    'The Hobbit: An Unexpected Journey', 'The Hunger Games: Catching Fire',
+    'Pirates of the Caribbean: Dead Mans Chest', 'Rogue One',
+    'Aladdin', 'Bohemian Rhapsody', 'Despicable Me 3', 'Jumanji',
+    'The Jungle Book', 'Pirates of the Caribbean: On Stranger Tides',
+    'Deadpool', 'Inside Out', 'Guardians of the Galaxy Vol. 2',
+    'Spider-Man: Far From Home', 'Captain America: The Winter Soldier',
+    'The Secret Life of Pets', 'Batman v Superman', 'Guardians of the Galaxy',
+    'Maleficent', 'Spider-Man', 'Thor: Ragnarok', 'Venom', 'The Matrix',
+    'Inception', 'Interstellar', 'Forrest Gump', 'The Shawshank Redemption',
+    'Pulp Fiction', 'The Godfather', 'The Lord of the Rings',
+    'Back to the Future', 'Gladiator', 'Jurassic Park', 'E.T.',
+    'Finding Nemo', 'Shrek 2', 'Up', 'WALL-E', 'Ratatouille', 'Moana',
+    'Coco', 'Brave', 'Tangled', 'Big Hero 6', 'Wreck-It Ralph',
+    'How to Train Your Dragon', 'Kung Fu Panda', 'Madagascar',
+    'The Incredibles', 'Monsters Inc', 'Cars', 'A Bugs Life',
+    'The Good Dinosaur', 'Onward', 'Soul', 'Luca', 'Turning Red', 'Encanto'
+]
+
 # These are the exact feature columns used during model training (in order)
 FEATURE_COLUMNS = ['distributor', 'opening_theaters', 'MPAA', 'release_days', 
                    'action', 'animation', 'comedy', 'drama', 'horror', 'thriller']
@@ -107,6 +139,20 @@ def predict():
         return render_template('result.html',
                              error=f"An error occurred: {str(e)}",
                              title=request.form.get('title', 'Unknown'))
+
+@app.route('/api/movies/search', methods=['GET'])
+def search_movies():
+    """API endpoint to search for movie suggestions"""
+    query = request.args.get('q', '').lower()
+    
+    if not query or len(query) < 2:
+        return jsonify([])
+    
+    # Filter movies that match the query
+    suggestions = [movie for movie in POPULAR_MOVIES if query in movie.lower()]
+    
+    # Return top 10 matches
+    return jsonify(suggestions[:10])
 
 @app.route('/api/predict', methods=['POST'])
 def api_predict():

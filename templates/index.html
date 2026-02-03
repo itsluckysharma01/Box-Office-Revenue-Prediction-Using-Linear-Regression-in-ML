@@ -26,7 +26,11 @@
             <form action="/predict" method="POST" id="predictionForm">
                 <div class="form-group">
                     <label for="title">🎥 Movie Title</label>
-                    <input type="text" id="title" name="title" placeholder="e.g., The Amazing Adventure" required>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="title" name="title" placeholder="e.g., The Amazing Adventure" 
+                               autocomplete="off" required>
+                        <div id="autocomplete-dropdown" class="autocomplete-dropdown"></div>
+                    </div>
                 </div>
 
                 <div class="form-row">

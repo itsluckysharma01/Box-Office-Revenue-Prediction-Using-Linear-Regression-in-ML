@@ -3,6 +3,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("predictionForm");
 
   if (form) {
+    // Initialize autocomplete for movie title
+    initializeAutocomplete();
+
     // Real-time input validation
     const openingTheatersInput = document.getElementById("opening_theaters");
     const releaseDaysInput = document.getElementById("release_days");
@@ -231,3 +234,162 @@ setTimeout(() => {
     }, 100);
   }
 }, 100);
+
+// Movie Title Autocomplete Functionality
+let autocompleteTimeout = null;
+let currentFocus = -1;
+
+function initializeAutocomplete() {
+  const titleInput = document.getElementById("title");
+  const dropdown = document.getElementById("autocomplete-dropdown");
+
+  if (!titleInput || !dropdown) return;
+
+  // Handle input changes
+  titleInput.addEventListener("input", function () {
+    const query = this.value.trim();
+    clearTimeout(autocompleteTimeout);
+
+    if (query.length < 2) {
+      dropdown.innerHTML = "";
+      dropdown.style.display = "none";
+      return;
+    }
+
+    // Debounce the search request
+    autocompleteTimeout = setTimeout(() => {
+      fetchMovieSuggestions(query);
+    }, 300);
+  });
+
+  // Handle keyboard navigation
+  titleInput.addEventListener("keydown", function (e) {
+    const items = dropdown.querySelectorAll(".autocomplete-item");
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      currentFocus++;
+      addActive(items);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      currentFocus--;
+      addActive(items);
+    } else if (e.key === "Enter") {
+      if (currentFocus > -1 && items[currentFocus]) {
+        e.preventDefault();
+        items[currentFocus].click();
+      }
+    } else if (e.key === "Escape") {
+      dropdown.style.display = "none";
+      currentFocus = -1;
+    }
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener("click", function (e) {
+    if (
+      e.target !== titleInput &&
+      e.target.closest(".autocomplete-dropdown") === null
+    ) {
+      dropdown.style.display = "none";
+      currentFocus = -1;
+    }
+  });
+}
+
+function fetchMovieSuggestions(query) {
+  const dropdown = document.getElementById("autocomplete-dropdown");
+
+  fetch(`/api/movies/search?q=${encodeURIComponent(query)}`)
+    .then((response) => response.json())
+    .then((suggestions) => {
+      displaySuggestions(suggestions, query);
+    })
+    .catch((error) => {
+      console.error("Error fetching suggestions:", error);
+      dropdown.innerHTML = "";
+      dropdown.style.display = "none";
+    });
+}
+
+function displaySuggestions(suggestions, query) {
+  const titleInput = document.getElementById("title");
+  const dropdown = document.getElementById("autocomplete-dropdown");
+  currentFocus = -1;
+
+  if (suggestions.length === 0) {
+    dropdown.innerHTML = `
+      <div class="autocomplete-item autocomplete-no-results">
+        <span style="color: #999;">No suggestions found</span><br>
+        <small style="color: #667eea;">You can enter any movie title</small>
+      </div>
+    `;
+    dropdown.style.display = "block";
+    return;
+  }
+
+  let html = "";
+  suggestions.forEach((movie) => {
+    // Highlight matching text
+    const regex = new RegExp(`(${escapeRegex(query)})`, "gi");
+    const highlightedMovie = movie.replace(regex, "<strong>$1</strong>");
+
+    html += `
+      <div class="autocomplete-item" data-value="${escapeHtml(movie)}">
+        <span>🎬</span> ${highlightedMovie}
+      </div>
+    `;
+  });
+
+  // Add option to enter custom movie
+  html += `
+    <div class="autocomplete-item autocomplete-custom">
+      <span>✏️</span> Enter "${escapeHtml(titleInput.value)}" manually
+    </div>
+  `;
+
+  dropdown.innerHTML = html;
+  dropdown.style.display = "block";
+
+  // Add click handlers to items
+  dropdown.querySelectorAll(".autocomplete-item").forEach((item) => {
+    item.addEventListener("click", function () {
+      const value = this.getAttribute("data-value");
+      if (value) {
+        titleInput.value = value;
+      }
+      // If it's the custom option, just close the dropdown
+      dropdown.style.display = "none";
+      currentFocus = -1;
+      titleInput.focus();
+    });
+  });
+}
+
+function addActive(items) {
+  if (!items || items.length === 0) return;
+
+  removeActive(items);
+
+  if (currentFocus >= items.length) currentFocus = 0;
+  if (currentFocus < 0) currentFocus = items.length - 1;
+
+  items[currentFocus].classList.add("autocomplete-active");
+
+  // Scroll into view if needed
+  items[currentFocus].scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+function removeActive(items) {
+  items.forEach((item) => item.classList.remove("autocomplete-active"));
+}
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function escapeRegex(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
