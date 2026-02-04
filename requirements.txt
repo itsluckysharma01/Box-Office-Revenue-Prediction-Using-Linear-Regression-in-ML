@@ -3,6 +3,6 @@ xgboost
 Werkzeug==3.0.1
 Flask==3.0.0
 numpy==1.26.4
-pandas==2.2.2
+pandas==2.2.3
 scikit-learn==1.4.2
 joblib==1.4.2
